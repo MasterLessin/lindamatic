@@ -11,7 +11,13 @@ from bot.handlers.registration import start_registration, handle_registration
 initialize_database()
 
 # Telegram Bot Token (Replace this with your bot token)
-BOT_TOKEN = "7554597661:AAHazGKItoIF1w9NfftdJgbXhw5wmJFFN9g"  # Make sure to replace this with your actual bot token
+BOT_TOKEN = "7554597661:AAHazGKItoIF1w9NfftdJgbXhw5wmJFFN9g"
+
+# Error handler
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle errors in the bot."""
+    print(f"Error occurred: {context.error}")
+    await update.message.reply_text("An error occurred. Please try again later.")
 
 # Start Command Handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -43,6 +49,9 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
+    # Add error handler
+    app.add_error_handler(error_handler)
+
     # Command Handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
@@ -59,9 +68,7 @@ def main():
     app.add_handler(CommandHandler("save_gate", save_gate))  # Save the gate information
 
     print("Bot is running...")
-
-    # Using long polling for updates (replacing webhook)
-    app.run_polling()  # This will start the bot and listen for updates
+    app.run_polling()
 
 if __name__ == "__main__":
     main()
