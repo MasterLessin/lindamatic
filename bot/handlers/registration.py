@@ -1,95 +1,75 @@
-
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import CallbackContext
+from telegram import Update
+from telegram.ext import ContextTypes
 from bot.utils.db import get_db_connection
+import json
 
-# List of Kenyan counties for registration
-COUNTIES = [
-    ["Nairobi", "Mombasa"],
-    ["Kisumu", "Nakuru"],
-    ["Kiambu", "Machakos"],
-    ["Other"],
-]
-
-def start_registration(update: Update, context: CallbackContext):
-    """Handles the /register command and starts the registration process."""
+async def start_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Starts the registration process by asking for user details."""
     user = update.message.from_user
-    telegram_id = user.id
+    # Store the user's Telegram ID in the context for later use
+    context.user_data['telegram_id'] = user.id
+    await update.message.reply_text("Please provide your first name:")
 
-    # Check if the user is already registered
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE telegram_id = ?", (telegram_id,))
-    result = cursor.fetchone()
-    conn.close()
+async def handle_registration(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the user's input during registration."""
+    user_input = update.message.text
+    telegram_id = context.user_data.get('telegram_id')
 
-    if result:
-        update.message.reply_text("✅ You are already registered!")
+    # Handle first name
+    if 'first_name' not in context.user_data:
+        context.user_data['first_name'] = user_input
+        await update.message.reply_text(f"Got it, {user_input}. Now, please provide your last name:")
         return
 
-    # Start the registration process
-    update.message.reply_text(
-        "👋 Welcome! Please send me your *First Name* to start registration.",
-        parse_mode="Markdown",
-    )
+    # Handle last name
+    if 'last_name' not in context.user_data:
+        context.user_data['last_name'] = user_input
+        await update.message.reply_text(f"Great! Now, please provide your phone number:")
+        return
 
-    # Set the bot's state to 'awaiting_first_name'
-    context.user_data['registration_state'] = 'awaiting_first_name'
+    # Handle phone number
+    if 'phone_number' not in context.user_data:
+        context.user_data['phone_number'] = user_input
+        await update.message.reply_text("Thanks! Now, please provide your email:")
+        return
 
-def handle_registration(update: Update, context: CallbackContext):
-    """Handles user responses during the registration process."""
-    state = context.user_data.get('registration_state', None)
-    user = update.message.from_user
-    telegram_id = user.id
-    text = update.message.text
+    # Handle email
+    if 'email' not in context.user_data:
+        context.user_data['email'] = user_input
+        await update.message.reply_text("Thanks! Now, please choose your county from the list below:")
 
-    if state == 'awaiting_first_name':
-        context.user_data['first_name'] = text
-        context.user_data['registration_state'] = 'awaiting_last_name'
-        update.message.reply_text("Great! Now send me your *Last Name*.", parse_mode="Markdown")
-    elif state == 'awaiting_last_name':
-        context.user_data['last_name'] = text
-        context.user_data['registration_state'] = 'awaiting_phone_number'
-        update.message.reply_text("Thanks! What's your *Phone Number*?", parse_mode="Markdown")
-    elif state == 'awaiting_phone_number':
-        context.user_data['phone_number'] = text
-        context.user_data['registration_state'] = 'awaiting_email'
-        update.message.reply_text("Got it! Please send me your *Email Address*.", parse_mode="Markdown")
-    elif state == 'awaiting_email':
-        context.user_data['email'] = text
-        context.user_data['registration_state'] = 'awaiting_county'
-        update.message.reply_text(
-            "Perfect! Now, select your *County* from the options below:",
-            reply_markup=ReplyKeyboardMarkup(COUNTIES, one_time_keyboard=True, resize_keyboard=True),
-            parse_mode="Markdown",
-        )
-    elif state == 'awaiting_county':
-        context.user_data['county'] = text
-        # Save the data to the database
-        save_user_to_db(telegram_id, context.user_data)
+        # Send a list of counties (simplified example)
+        counties = ["Nairobi", "Mombasa", "Kisumu", "Nakuru"]
+        keyboard = [[county] for county in counties]
+        await update.message.reply_text("Select your county:", reply_markup=keyboard)
+        return
 
-        # Clear the registration state
-        context.user_data.clear()
-        update.message.reply_text("🎉 Registration complete! Welcome aboard!")
-    else:
-        update.message.reply_text("Please use /register to start the registration process.")
+    # Handle county selection
+    if 'county' not in context.user_data:
+        context.user_data['county'] = user_input
+        # Store the user's details in the database
+        await save_user_registration(context.user_data)
+        await update.message.reply_text(f"Registration complete! Welcome {context.user_data['first_name']}!")
+        return
 
-def save_user_to_db(telegram_id, user_data):
-    """Saves user data to the database."""
-    conn = get_db_connection()
-    cursor = conn.cursor()
+async def save_user_registration(user_data):
+    """Save the user's registration details to the database."""
+    connection = get_db_connection()
+    cursor = connection.cursor()
 
+    # Insert into the users table
     cursor.execute('''
-        INSERT INTO users (telegram_id, first_name, last_name, username, phone_number, email, county)
+        INSERT INTO users (telegram_id, username, first_name, last_name, phone_number, email, county)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', (
-        telegram_id,
-        user_data.get('first_name'),
-        user_data.get('last_name'),
-        user_data.get('username'),
-        user_data.get('phone_number'),
-        user_data.get('email'),
-        user_data.get('county'),
+        user_data['telegram_id'],
+        user_data.get('username', ''),
+        user_data['first_name'],
+        user_data['last_name'],
+        user_data['phone_number'],
+        user_data['email'],
+        user_data['county']
     ))
-    conn.commit()
-    conn.close()
+
+    connection.commit()
+    connection.close()
