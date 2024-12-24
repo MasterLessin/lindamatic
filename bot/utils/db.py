@@ -38,13 +38,18 @@ def initialize_database():
         )
         ''')
 
-        # Users Table
+        # Updated Users Table
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             telegram_id TEXT NOT NULL UNIQUE,
             username TEXT,
-            completed_gates TEXT, -- JSON string of completed gates
+            first_name TEXT NOT NULL,
+            last_name TEXT NOT NULL,
+            phone_number TEXT NOT NULL,
+            email TEXT NOT NULL,
+            county TEXT NOT NULL,
+            completed_gates TEXT DEFAULT '', -- JSON string of completed gates
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         ''')
