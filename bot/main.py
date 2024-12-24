@@ -1,4 +1,3 @@
-import os
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
@@ -12,10 +11,7 @@ from bot.handlers.registration import start_registration, handle_registration
 initialize_database()
 
 # Telegram Bot Token (Replace this with your bot token)
-BOT_TOKEN = "7554597661:AAHazGKItoIF1w9NfftdJgbXhw5wmJFFN9g"
-
-# Webhook URL (Replace with your Render app URL)
-WEBHOOK_URL = "https://lindamatic.onrender.com/webhook"  # Replace with your actual Render URL
+BOT_TOKEN = "your_bot_token"  # Make sure to replace this with your actual bot token
 
 # Start Command Handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -62,14 +58,10 @@ def main():
     # Save Gate Command
     app.add_handler(CommandHandler("save_gate", save_gate))  # Save the gate information
 
-    # Set up webhook
-    app.run_webhook(
-    listen="0.0.0.0",
-    port=8443,
-    url_path="webhook",
-    webhook_url="https://lindamatic.onrender.com/webhook",
-)
+    print("Bot is running...")
 
+    # Using long polling for updates (replacing webhook)
+    app.run_polling()  # This will start the bot and listen for updates
 
 if __name__ == "__main__":
     main()
