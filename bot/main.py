@@ -11,7 +11,7 @@ from bot.handlers.registration import start_registration, handle_registration
 initialize_database()
 
 # Telegram Bot Token (Replace this with your bot token)
-BOT_TOKEN = "your_bot_token"  # Make sure to replace this with your actual bot token
+BOT_TOKEN = "7554597661:AAHazGKItoIF1w9NfftdJgbXhw5wmJFFN9g"  # Make sure to replace this with your actual bot token
 
 # Start Command Handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
