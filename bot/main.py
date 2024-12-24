@@ -11,7 +11,7 @@ from bot.handlers.gates import setup_gate, handle_gate_selection, save_gate
 initialize_database()
 
 # Telegram Bot Token (Replace this with your bot token)
-BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+BOT_TOKEN = "7554597661:AAHazGKItoIF1w9NfftdJgbXhw5wmJFFN9g"
 
 # Start Command Handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
