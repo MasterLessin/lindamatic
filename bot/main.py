@@ -64,10 +64,12 @@ def main():
 
     # Set up webhook
     app.run_webhook(
-        listen="0.0.0.0",  # Listen on all available network interfaces
-        port=int(os.environ.get("PORT", 8443)),  # Use Render's default port
-        webhook_url=WEBHOOK_URL  # Webhook URL for Telegram
-    )
+    listen="0.0.0.0",
+    port=8443,
+    url_path="webhook",
+    webhook_url="https://lindamatic.onrender.com/webhook",
+)
+
 
 if __name__ == "__main__":
     main()
