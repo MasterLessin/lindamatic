@@ -1,11 +1,11 @@
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import (
-    ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+    ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 )
 from bot.utils.db import initialize_database
 from bot.handlers.commands import help_command  # Import the help command
 from bot.handlers.gates import setup_gate, handle_gate_selection, save_gate
-
+from bot.handlers.registration import start_registration, handle_registration
 
 # Initialize the database
 initialize_database()
@@ -42,10 +42,20 @@ async def handle_callback_query(update: Update, context: ContextTypes.DEFAULT_TY
 # Main Application
 def main():
     app = ApplicationBuilder().token(BOT_TOKEN).build()
+
+    # Command Handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("setup_gate", setup_gate))  # Add the gate setup command
+    app.add_handler(CommandHandler("register", start_registration))  # Add the registration start command
+
+    # Callback Query Handlers
     app.add_handler(CallbackQueryHandler(handle_gate_selection, pattern="^gate_"))  # Handle gate selection
+
+    # Registration Flow Handler (text messages for user input during registration)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_registration))
+
+    # Save Gate Command
     app.add_handler(CommandHandler("save_gate", save_gate))  # Save the gate information
 
     print("Bot is running...")
