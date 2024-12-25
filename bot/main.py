@@ -5,14 +5,13 @@ from telegram.ext import (
 from bot.utils.db import initialize_database
 from bot.handlers.commands import help_command  # Import the help command
 from bot.handlers.gates import setup_gate, handle_gate_selection, save_gate
-from bot.handlers.registration import start_registration, handle_registration, handle_county_selection
+from bot.handlers.registration import start_registration, handle_registration
 
 # Initialize the database
 initialize_database()
 
-# Telegram Bot Token (stored in Render environment variables)
-import os
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+# Telegram Bot Token (Replace this with your bot token)
+BOT_TOKEN = "YOUR_BOT_TOKEN"
 
 # Start Command Handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -52,7 +51,6 @@ def main():
 
     # Callback Query Handlers
     app.add_handler(CallbackQueryHandler(handle_gate_selection, pattern="^gate_"))  # Handle gate selection
-    app.add_handler(CallbackQueryHandler(handle_county_selection, pattern="^county_"))  # Handle county selection
 
     # Registration Flow Handler (text messages for user input during registration)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_registration))
@@ -61,7 +59,7 @@ def main():
     app.add_handler(CommandHandler("save_gate", save_gate))  # Save the gate information
 
     print("Bot is running...")
-    app.run_polling()
+    app.run_polling()  # Ensure polling is used here instead of webhooks
 
 
 if __name__ == "__main__":
