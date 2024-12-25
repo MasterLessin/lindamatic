@@ -5,7 +5,7 @@ from telegram.ext import (
 from bot.utils.db import initialize_database
 from bot.handlers.commands import help_command  # Import the help command
 from bot.handlers.gates import setup_gate, handle_gate_selection, save_gate
-from bot.handlers.registration import start_registration, handle_registration
+from bot.handlers.registration import start_registration, handle_registration, handle_county_selection
 
 # Initialize the database
 initialize_database()
@@ -52,6 +52,7 @@ def main():
 
     # Callback Query Handlers
     app.add_handler(CallbackQueryHandler(handle_gate_selection, pattern="^gate_"))  # Handle gate selection
+    app.add_handler(CallbackQueryHandler(handle_county_selection, pattern="^county_"))  # Handle county selection
 
     # Registration Flow Handler (text messages for user input during registration)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_registration))
@@ -60,7 +61,7 @@ def main():
     app.add_handler(CommandHandler("save_gate", save_gate))  # Save the gate information
 
     print("Bot is running...")
-    app.run_polling()  # This enables polling mode, not webhooks.
+    app.run_polling()
 
 
 if __name__ == "__main__":
